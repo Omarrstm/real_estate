@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Root Menu (appears in the App switcher) -->
+    <menuitem id="menu_estate_root" name="Real Estate"/>
+
+    <!-- First Level Menu (top bar) -->
+    <menuitem id="menu_estate_property_first_level" name="Properties" parent="menu_estate_root"/>
+
+    <!-- Action Menu (links to estate.property action) -->
+    <menuitem id="menu_estate_property_action" name="Manage Properties"
+              parent="menu_estate_property_first_level"
+              action="action_estate_property"/>
+</odoo>
