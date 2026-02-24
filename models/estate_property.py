@@ -1,26 +1,32 @@
-# -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import models, fields
 from datetime import date, timedelta
+
+class EstatePropertyTag(models.Model):
+    _name = "estate.property.tag"
+    _description = "Property Tag"
+
+    name = fields.Char("Name", required=True)
+
 
 class EstateProperty(models.Model):
     _name = "estate.property"
     _description = "Real Estate Property"
     _order = "id desc"
 
-    # Basic fields with defaults, read-only, and copy rules
+    # Basic fields
     name = fields.Char("Title", required=True)
     description = fields.Text("Description")
     postcode = fields.Char("Postcode")
     date_availability = fields.Date(
         "Available From",
-        default=lambda self: date.today() + timedelta(days=90),  # 3 months from today
-        copy=False  # not duplicated when duplicating the record
+        default=lambda self: date.today() + timedelta(days=90),
+        copy=False
     )
     expected_price = fields.Float("Expected Price", required=True)
     selling_price = fields.Float(
         "Selling Price",
-        readonly=True,  # read-only in UI
-        copy=False      # not duplicated when duplicating
+        readonly=True,
+        copy=False
     )
     bedrooms = fields.Integer("Bedrooms", default=2)
     living_area = fields.Integer("Living Area (sqm)")
@@ -34,24 +40,23 @@ class EstateProperty(models.Model):
         ('east', 'East'),
         ('west', 'West')
     ], string="Garden Orientation")
-
-    # Reserved field: automatically hides inactive records
     active = fields.Boolean("Active", default=True)
 
-    # State field for workflow/status
-    state = fields.Selection(
-        [
-            ('new', 'New'),
-            ('offer_received', 'Offer Received'),
-            ('offer_accepted', 'Offer Accepted'),
-            ('sold', 'Sold'),
-            ('cancelled', 'Cancelled')
-        ],
-        string="Status",
-        required=True,
-        copy=False,
-        default='new'
-    )
+    # Status
+    state = fields.Selection([
+        ('new', 'New'),
+        ('offer_received', 'Offer Received'),
+        ('offer_accepted', 'Offer Accepted'),
+        ('sold', 'Sold'),
+        ('cancelled', 'Cancelled')
+    ], string="Status", required=True, copy=False, default='new')
+
+    # Relationships
+    property_type_id = fields.Many2one("estate.property.type", string="Property Type")
+    buyer_id = fields.Many2one("res.partner", string="Buyer")
+    salesperson_id = fields.Many2one("res.users", string="Salesperson",
+                                     default=lambda self: self.env.user)
+    tag_ids = fields.Many2many("estate.property.tag", string="Tags")  # <-- This is required
 
     # SQL constraints
     _sql_constraints = [
@@ -61,3 +66,9 @@ class EstateProperty(models.Model):
             'The expected price must be strictly positive.'
         ),
     ]
+    offer_ids = fields.One2many(
+    "estate.property.offer",
+    "property_id",
+    string="Offers"
+)
+
