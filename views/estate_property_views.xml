@@ -32,26 +32,30 @@
         <field name="arch" type="xml">
             <form string="Property">
                 <!-- Header Buttons -->
-                <header>
-                   
+    <!-- <header>
+
     <button name="action_sold"
             string="Mark as Sold"
             type="object"
             class="btn-success"
-            invisible="[(state, '=', 'sold')]"/>
+            invisible="state not in ['new', 'offer_received', 'offer_accepted']"/>
+
     <button name="action_cancel"
             string="Cancel Property"
             type="object"
             class="btn-danger"
-            invisible="[(state, '=', 'cancelled')]"/>
+            invisible="state not in ['new', 'offer_received', 'offer_accepted']"/>
+
     <button name="action_reset_to_new"
             string="Reset to New"
             type="object"
             class="btn-secondary"
-            invisible="[(state, '=', 'new')]"/>        
+            invisible="state not in ['sold', 'cancelled']"/>
 
-      
-                </header>
+</header> -->
+
+
+
                 <sheet>
                     <group>
                         <group>
@@ -113,11 +117,18 @@
                                     <field name="status"/>
                                     <field name="validity"/>
                                     <field name="date_deadline"/>
+                                    <!-- Accept Offer Button -->
                                     <button name="action_confirm_offer"
-                                            string="Confirm Offer"
+                                            string="Accept"
                                             type="object"
                                             class="btn-success"
-                                            attrs="{'invisible': [('status', '=', 'accepted')]}"/>
+                                            states="new,refused"/>
+                                    <!-- Refuse Offer Button -->
+                                    <button name="action_refuse_offer"
+                                            string="Refuse"
+                                            type="object"
+                                            class="btn-danger"
+                                            states="new"/>
                                 </list>
                             </field>
                         </page>
@@ -152,7 +163,7 @@
         </field>
     </record>
 
-    <!-- Action for Properties -->
+    <!-- Actions -->
     <record id="action_estate_property" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">estate.property</field>
@@ -160,10 +171,7 @@
         <field name="search_view_id" ref="view_estate_property_search"/>
     </record>
 
-    <!-- ============================= -->
-    <!-- Property Type Views -->
-    <!-- ============================= -->
-
+    
     <record id="view_estate_property_type_list" model="ir.ui.view">
         <field name="name">estate.property.type.list</field>
         <field name="model">estate.property.type</field>
@@ -192,10 +200,7 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- ============================= -->
-    <!-- Property Tag Views -->
-    <!-- ============================= -->
-
+   
     <record id="view_estate_property_tag_list" model="ir.ui.view">
         <field name="name">estate.property.tag.list</field>
         <field name="model">estate.property.tag</field>
@@ -224,12 +229,9 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- ============================= -->
-    <!-- Property Offer Views -->
-    <!-- ============================= -->
-
+    
     <record id="view_estate_property_offer_tree" model="ir.ui.view">
-        <field name="name">estate.property.offer.tree</field>
+        <field name="name">estate.property.offer.list</field>
         <field name="model">estate.property.offer</field>
         <field name="arch" type="xml">
             <list string="Property Offers">
@@ -261,32 +263,11 @@
         </field>
     </record>
 
-    <!-- ============================= -->
-    <!-- Menus -->
-    <!-- ============================= -->
-
+    
     <menuitem id="menu_estate_root" name="Real Estate"/>
-
-    <menuitem id="menu_estate_properties"
-              name="Properties"
-              parent="menu_estate_root"
-              action="action_estate_property"/>
-
-    <menuitem id="menu_estate_settings"
-              name="Settings"
-              parent="menu_estate_root"
-              sequence="10"/>
-
-    <menuitem id="menu_estate_property_type"
-              name="Property Types"
-              parent="menu_estate_settings"
-              action="action_estate_property_type"
-              sequence="10"/>
-
-    <menuitem id="menu_estate_property_tags"
-              name="Property Tags"
-              parent="menu_estate_settings"
-              action="action_estate_property_tag"
-              sequence="20"/>
+    <menuitem id="menu_estate_properties" name="Properties" parent="menu_estate_root" action="action_estate_property"/>
+    <menuitem id="menu_estate_settings" name="Settings" parent="menu_estate_root" sequence="10"/>
+    <menuitem id="menu_estate_property_type" name="Property Types" parent="menu_estate_settings" action="action_estate_property_type" sequence="10"/>
+    <menuitem id="menu_estate_property_tags" name="Property Tags" parent="menu_estate_settings" action="action_estate_property_tag" sequence="20"/>
 
 </odoo>

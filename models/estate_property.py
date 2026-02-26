@@ -33,11 +33,7 @@ class EstateProperty(models.Model):
         copy=False
     )
     expected_price = fields.Float("Expected Price", required=True)
-    selling_price = fields.Float(
-        "Selling Price",
-        readonly=True,
-        copy=False
-    )
+    selling_price = fields.Float("Selling Price", readonly=True, copy=False)
     bedrooms = fields.Integer("Bedrooms", default=2)
     living_area = fields.Integer("Living Area (sqm)")
     facades = fields.Integer("Facades")
@@ -79,14 +75,8 @@ class EstateProperty(models.Model):
     # -------------------------
     # Chapter 8 Fields (Computed)
     # -------------------------
-    total_area = fields.Float(
-        string="Total Area",
-        compute="_compute_total_area"
-    )
-    best_price = fields.Float(
-        string="Best Offer",
-        compute="_compute_best_price"
-    )
+    total_area = fields.Float(string="Total Area", compute="_compute_total_area")
+    best_price = fields.Float(string="Best Offer", compute="_compute_best_price")
 
     # -------------------------
     # Compute Methods
@@ -138,22 +128,10 @@ class EstateProperty(models.Model):
             record.state = 'sold'
 
     def action_cancel(self):
-        """Cancel property."""
+        """Mark property as cancelled."""
         for record in self:
             if record.state == 'sold':
                 raise ValidationError("Sold properties cannot be cancelled.")
-            record.state = 'cancelled'
-    # -------------------------
-    # Chapter 9: Actions
-    # -------------------------
-    def action_sold(self):
-        """Mark property as sold."""
-        for record in self:
-            record.state = 'sold'
-
-    def action_cancel(self):
-        """Mark property as cancelled."""
-        for record in self:
             record.state = 'cancelled'
 
     def action_reset_to_new(self):
@@ -162,3 +140,41 @@ class EstateProperty(models.Model):
             record.state = 'new'
             record.selling_price = 0.0
             record.buyer_id = False
+
+
+# -------------------------
+# Property Offer Model
+# -------------------------
+class EstatePropertyOffer(models.Model):
+    _name = "estate.property.offer"
+    _description = "Real Estate Property Offer"
+
+    price = fields.Float("Price", required=True)
+    partner_id = fields.Many2one("res.partner", string="Partner", required=True)
+    status = fields.Selection([
+        ('new', 'New'),
+        ('accepted', 'Accepted'),
+        ('refused', 'Refused')
+    ], default='new')
+    property_id = fields.Many2one("estate.property", string="Property", required=True)
+    validity = fields.Integer("Validity (days)")
+    date_deadline = fields.Date("Deadline")
+
+    # -------------------------
+    # Methods for buttons
+    # -------------------------
+    def action_confirm_offer(self):
+        """Accept this offer and refuse others."""
+        for offer in self:
+            offer.status = 'accepted'
+            offer.property_id.state = 'offer_accepted'
+            offer.property_id.buyer_id = offer.partner_id
+            offer.property_id.selling_price = offer.price
+            # Refuse other offers
+            other_offers = offer.property_id.offer_ids - offer
+            other_offers.write({'status': 'refused'})
+
+    def action_refuse_offer(self):
+        """Refuse this offer."""
+        for offer in self:
+            offer.status = 'refused'
